@@ -3,7 +3,7 @@ from multiprocessing import Pool, cpu_count
 from time import sleep
 import numpy as np
 
-from .models import *
+from models import *
 
 # TODO: get the junk columns out of the pandas parsed datasets
 

@@ -126,7 +126,7 @@ Cool, let's take a look at the values:
 Please note that while in this example we've lost values from all fields
 except thsoe passed into 'map_fields,' since the creation of this document
 that issue has been addressed. Now, if the map_subfunc does not change the
-shape of your data too dramatically, ccp_eye will preserve the un-mapped
+shape of your data too dramatically, cili will preserve the un-mapped
 fields, so in this case the samples would still have values for 'onset,'
 'pup_l,' 'x_l,' and 'y_l.'
 
@@ -208,9 +208,9 @@ Here's what it looks like:
 
 ```python
 
-from ccp_eye.CEDataSet import *
-from ccp_eye.CETimeseriesCollection import *
-from ccp_eye.CEEventSet import *
+from cili.CEDataSet import *
+from cili.CETimeseriesCollection import *
+from cili.CEEventSet import *
 ds = CEDataSet.load_saved('/path/to/dataset/data_1.pkl')
 es = CEEventSet.load_saved('/path/to/eventset/event_1.pkl')
 ts = CETimeseriesCollection()
@@ -248,7 +248,7 @@ extract event sets of equal length and order from the two files (using the
 varys module, perhaps?), we can merge them together like so:
 
 ```python
-from ccp_eye.CEEventSet import *
+from cili.CEEventSet import *
 es = CEEventSet.merge('/path/to/file1.pkl', '/path/to/file2')
 # or...
 es = CEEventSet.merge(event_set_1, event_set_2, event_set_3)
