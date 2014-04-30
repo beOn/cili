@@ -1,0 +1,11 @@
+# Ignore pyc
+*.pyc
+
+# Mac Junk
+.DS_Store
+
+/dist/
+
+/build/
+
+/cili.egg-info/
