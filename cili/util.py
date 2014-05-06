@@ -132,47 +132,33 @@ ASC_EV_IGNORE_COLUMNS = {
 ASC_IRREG_EVENTS = ['MSG','START','END']
 ASC_INT_TYPES = [np.int64]
 
-def load_eyetracking_dataset(file_name):
-    """ returns a dataset, and an event set"""
+def load_eyelink_dataset(file_name):
+    """ Parses eyelink data to return samples and events.
 
-    # TODO: this thing needs a refactor
+    For now, we can only parse events from .asc files. If you hand us a .txt,
+    we'll parse out the samples, but not the events.
 
+    Parameters
+    ----------
+    file_name (string)
+        The .asc or .txt file you'd like to parse.
+
+    Returns
+    -------
+    (Samples object, Events object (or None))
+    """
     root, ext = os.path.splitext(file_name)
     if ext == '.asc':
-        return load_asc(file_name)
-    elif ext in ['.txt','.tdf']:
-        return load_tdf(file_name)
+        e, s = pandas_dfs_from_asc(file_name)
+    elif ext in ['.txt']:
+        s = load_tdf(file_name)
+        e = None
     else:
-        raise ValueError("only .asc and .pkl files supported at the moment...")
-
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
-
-def numberfy(s):
-    n = s
-    try:
-        n = float(n)
-        return n
-    except Exception:
-        return s
-
-def detect_encoding(file_path):
-    from chardet.universaldetector import UniversalDetector
-    u = UniversalDetector()
-    with open(file_path, 'rb') as f:
-        for line in f:
-            u.feed(line)
-        u.close()
-    result = u.result
-    if result['encoding']:
-        return result['encoding']
-    return None
+        raise ValueError("only .asc and .txt files supported at the moment...")
+    reutn s, e
 
 def pandas_df_from_txt(file_path):
+    """ Parses samples out of an EyeLink .txt file """
     import pandas as pd
     import io
     # first we'll just grab everything as objects...
@@ -194,6 +180,7 @@ def pandas_df_from_txt(file_path):
     return Samples.from_pd_obj(df)
 
 def pandas_dfs_from_asc(file_path):
+    """ Parses samples and events out of an EyeLink .asc file """
     # collect lines for each event type (including samples)
     e_lines = dict([(k,[]) for k in ASC_EV_LINE_STARTS])
     s_lines = []
@@ -306,7 +293,12 @@ def build_asc_ev_dtypes(ev_name, side, has_vel, has_res):
 def info_from_asc_samples_line(line_txt):
     """ gets sample info from asc SAMPLE lines
 
-    returns
+    Parameters
+    ----------
+    line_txt (string)
+        A single line from an EyeLink asc file.
+
+    Returns
     -------
     side (str)
         'l', 'r', or 'b'
