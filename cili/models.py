@@ -141,10 +141,3 @@ class Events(object):
 def initialize_hdf5():
     pt._TYPE_MAP.update({Events:u('wide'), Samples:u('frame'),})
     pt._AXES_MAP.update({Events:[1, 2], Samples:[0],})
-
-# PANDAS objects:
-# Samples - CEDataSet - DataFrame
-# Events - CEEventSet - Panel
-# Redundant of Samples: CETimeseriesCollection - Hierarchically Indexed DataFrame
-# CEAbstractObj -
-
