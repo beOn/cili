@@ -5,16 +5,32 @@ import pandas as pd
 # Masking
 
 def find_nested_events(samples, outer, inner):
-    """ returns indices in outer that contain events in inner """
+    """ Returns indices of events in outer that contain events in inner
+    
+    This is helpful for dealing with EyeLink blink events. Each is embedded
+    within a saccade event, and the EyeLink documentation states that data
+    within saccades that contain blinks is unreliable. So we use this method
+    to find those saccade events.
+    
+    Parameters
+    ----------
+    samples (cili Samples)
+        The samples object to which the events objects refer.
+    outer (cili Events)
+        The list of events you'd like to search for ones containing events in
+        'inner.'
+    inner (cili Events)
+        The list of events whose containing events from 'outer' you're trying
+        to find.
+    """
     # looking for inner events whose onset is at or before outer offset,
-    # and whose offset is at or after inner onset
-    # get list of onsets of first samples *after* our events
+    # and whose offset is at or after inner onset.
+    # get list of onsets of first samples *after* inner events
     onsets = inner.index.to_series()
     post_onsets = onsets + inner.duration
     # convert to list of positional indices
     max_onset = samples.index[-1]
     last_idxs = post_onsets.apply(lambda x: max(0, samples.index.searchsorted(x, side="right")-1))
-    # last_idxs = post_onsets.apply(lambda x: samples.index.get_loc(min(x,max_onset)))
     # step back by one positional index to get pos. index of last samples of our events.
     # stupid fix - don't nudge the index back for events whose duration went beyond the samples
     end_safe_evs = post_onsets <= max_onset
@@ -26,12 +42,45 @@ def find_nested_events(samples, outer, inner):
         return pd.DataFrame()
     return outer[idxs]
 
-def has_overlapping_events(row, onsets, last_onsets):
-    """ searches series last_onsets for rows with onset <= row offset, and offset >= row onset. """
-    matches = last_onsets[(onsets <= row.name+row.duration) & (last_onsets >= row.name)]
+def has_overlapping_events(event, onsets, last_onsets):
+    """ Searches for onset/last_onset pairs overlapping with the event in 'event.'
+
+    Specifically, searches series last_onsets for rows with onset <= event
+    offset, and offset >= event onset.
+
+    Parameters
+    ----------
+    event (1xN DataFrame)
+        The event you're testing for intersection with the onsets/last_onsets.
+    onsets (numpy array like)
+        Onset indices of potentially intersecting events.
+    last_onsets (numpy array like)
+        Last indices of the potentially intersecting events.
+    """
+    matches = last_onsets[(onsets <= event.name+event.duration) & (last_onsets >= event.name)]
     return len(matches) > 0
 
 def get_eyelink_mask_events(samples, events, find_recovery=True, recovery_field="pup_l"):
+    """ Finds events from EyeLink data that contain untrustworthy data.
+
+    Per the EyeLink documentation, we return EBLINK events as well as any
+    saccade containing a blink event. We also use adjust_eyelink_recov_idxs to
+    push the end of these events slightly farther forward than the EyeLink-
+    reported endpoints, because they often include data that is clearly bad.
+
+    Parameters
+    ----------
+    samples (cili Samples)
+        The samples in which the events in 'events' occur.
+    events (cili Events)
+        The events you'd like to search for blinks and bad saccades.
+    find_recovery (bool)
+        Defaul True. If true, we will use adjust_eyelink_recov_idxs to find
+        the proper ends for blink events.
+    recovery_field (string)
+        The field used in adjust_eyelink_recov_idxs. Should be either left or
+        right pupil size.
+    """
     be = events.EBLINK.duration.to_frame()
     be = pd.concat([be, find_nested_events(samples, events.ESACC.duration.to_frame(), be)])
     if find_recovery:
@@ -39,23 +88,67 @@ def get_eyelink_mask_events(samples, events, find_recovery=True, recovery_field=
     return be
 
 def get_eyelink_mask_idxs(samples, events, find_recovery=True, recovery_field="pup_l"):
+    """ Calls get_eyelink_mask_events, finds indices from 'samples' within the returned events.
+
+    See notes on get_eyelink_mask_events FMI.
+    """
     be = get_eyelink_mask_events(samples, events, find_recovery=find_recovery, recovery_field=recovery_field)
     bi = ev_row_idxs(samples, be)
     return bi
 
 def mask_eyelink_blinks(samples, events, mask_fields=["pup_l"], find_recovery=True, recovery_field="pup_l"):
+    """ Sets the value of all untrustworthy data points to NaN.
+
+    Per the EyeLink documentation, we include blink events as well as any
+    saccade containing a blink event. We also use adjust_eyelink_recov_idxs to
+    push the end of these events slightly farther forward than the EyeLink-
+    reported endpoints, because they often include data that is clearly bad.
+
+    Parameters
+    ----------
+    samples (cili Samples)
+        The samples in which the events in 'events' occur.
+    events (cili Events)
+        The events you'd like to search for blinks and bad saccades.
+    mask_fields (list of strings)
+        The columns you'd like set to NaN for bad event indices.
+    find_recovery (bool)
+        Defaul True. If true, we will use adjust_eyelink_recov_idxs to find
+        the proper ends for blink events.
+    recovery_field (string)
+        The field used in adjust_eyelink_recov_idxs. Should be either left or
+        right pupil size.
+    """
     samps = samples.copy(deep=True)
     indices = get_eyelink_mask_idxs(samps, events, find_recovery=find_recovery, recovery_field=recovery_field)
     samps.loc[indices, mask_fields] = float('nan')
     return samps
 
 def mask_zeros(samples, mask_fields=["pup_l"]):
+    """ Sets any 0 values in columns in mask_fields to NaN
+
+    Parameters
+    ----------
+    samples (cili Samples)
+        The samples you'd like to search for 0 values.
+    mask_fields (list of strings)
+        The columns in you'd like to search for 0 values.
+    """
     samps = samples.copy(deep=True)
     for f in mask_fields:
         samps[samps[f] == 0] = float("nan")
     return samps
 
 def interp_zeros(samples, interp_fields=["pup_l"]):
+    """ Replace 0s in 'samples' with linearly interpolated data.
+
+    Parameters
+    ----------
+    samples (cili Samples)
+        The samples in which you'd like to replace 0s
+    interp_fields (list of strings)
+        The column names from samples in which you'd like to replace 0s.
+    """
     samps = mask_zeros(samples, mask_fields=interp_fields)
     samps = samps.interpolate(method="linear", axis=0, inplace=False)
     # since interpolate doesn't handle the start/finish, bfill the ffill to
@@ -65,6 +158,28 @@ def interp_zeros(samples, interp_fields=["pup_l"]):
     return samps
 
 def interp_eyelink_blinks(samples, events, find_recovery=True, interp_fields=["pup_l"], recovery_field="pup_l"):
+    """ Replaces the value of all untrustworthy data points linearly interpolated data.
+
+    Per the EyeLink documentation, we include blink events as well as any
+    saccade containing a blink event. We also use adjust_eyelink_recov_idxs to
+    push the end of these events slightly farther forward than the EyeLink-
+    reported endpoints, because they often include data that is clearly bad.
+
+    Parameters
+    ----------
+    samples (cili Samples)
+        The samples in which the events in 'events' occur.
+    events (cili Events)
+        The events you'd like to search for blinks and bad saccades.
+    find_recovery (bool)
+        Defaul True. If true, we will use adjust_eyelink_recov_idxs to find
+        the proper ends for blink events.
+    interp_fields (list of strings)
+        The columns in which we should interpolate data.
+    recovery_field (string)
+        The field used in adjust_eyelink_recov_idxs. Should be either left or
+        right pupil size.
+    """
     samps = mask_eyelink_blinks(samples, events, mask_fields=interp_fields, find_recovery=find_recovery, recovery_field=recovery_field)
     # inplace=True causes a crash, so for now...
     # fixed by #6284 ; will be in 0.14 release of pandas
@@ -72,7 +187,15 @@ def interp_eyelink_blinks(samples, events, find_recovery=True, interp_fields=["p
     return samps
 
 def ev_row_idxs(samples, events):
-    """ we expect a series of durations, with time indexes in the same unit... """
+    """ Returns the indices in 'samples' contained in events from 'events.'
+
+    Parameters
+    ----------
+    samples (cili Samples)
+        The samples you'd like to pull indices from.
+    events (cili Events)
+        The events whose indices you'd like to pull from 'samples.'
+    """
     import numpy as np
     idxs = []
     for idx, dur in events.duration.iteritems():
@@ -82,7 +205,7 @@ def ev_row_idxs(samples, events):
     return idxs
 
 def adjust_eyelink_recov_idxs(samples, events, z_thresh=.1, field="pup_l", window=1000, kernel_size=100):
-    """ extends event endpoint until the z-scored derivative of 'field's timecourse drops below thresh
+    """ Extends event endpoint until the z-scored derivative of 'field's timecourse drops below thresh
 
     We will try to extend *every* event passed in.
 
