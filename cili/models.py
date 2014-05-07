@@ -60,7 +60,6 @@ class Events(object):
 
     @classmethod
     def load_saved(cls, save_path):
-        # TODO: read in all of the dataframes stored on the object
         obj = cls()
         s = pt.HDFStore(save_path)
         obj.dframes = dict([(k[1:],s[k]) for k in s.keys()])
