@@ -222,3 +222,10 @@ A good bug report should include three things:
 The goal is to give the developers the ability to recreate the bug before
 their own eyes. If you can give us that, we'll take a very close look.
 
+Why Cili?
+=========
+
+Because, like the mighty ciliary muscles, it brings your eye data into focus.
+
+TODO: Thanks, credit to CCP Lab
+
