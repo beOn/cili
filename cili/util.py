@@ -317,3 +317,37 @@ def info_from_asc_samples_line(line_txt):
     elif 'RIGHT' in words and not 'LEFT' in words:
         sample_side = 'r'
     return sample_side, has_velocity, has_resolution
+
+
+def percentile_bucket(vals, bucket_size=10, scale=1.0, shift=0.0):
+    """ returns percentile scores for each value
+    Parameters
+    ----------
+    bucket_size (float)
+        The size of each bucket, in percentile points 0-100. Actual bucket
+        cutoffs are calculated with numpy.arange(), so if 100 isn't divisible
+        by bucket_size, your top bucket will be small.
+    scale (float)
+        All values will be multiplied by this number after bucketing.
+    shift (float)
+        All values will have this added to them after scaling.
+    """
+    from scipy.stats import scoreatpercentile as sp
+    import numpy as np
+    from bisect import bisect_left
+    percs = np.concatenate([np.arange(bucket_size,100,bucket_size), [100]]) # arange to get the percentiles
+    cuts = [sp(vals, p) for p in percs] # to get the cutoff score for each percentile
+    new_list = np.array([bisect_left(cuts, val)+1 for val in vals]) * scale + shift # turn values into bucket numbers... +1 since we want 1-indexed buckets
+    return new_list
+ 
+def ensure_dir(dir_path, overwrite=False):
+    from shutil import rmtree
+    from os.path import isdir, exists
+    from os import makedirs
+    if exists(dir_path):
+        if not isdir(dir_path):
+            raise ValueError("%s is a file..." % dir_path)
+        if overwrite:
+            rmtree(dir_path)
+    if not exists(dir_path):
+        makedirs(dir_path)
