@@ -155,7 +155,7 @@ def load_eyelink_dataset(file_name):
         e = None
     else:
         raise ValueError("only .asc and .txt files supported at the moment...")
-    reutn s, e
+    return s, e
 
 def pandas_df_from_txt(file_path):
     """ Parses samples out of an EyeLink .txt file """
