@@ -1,4 +1,7 @@
+#!/usr/bin/env python
+
 import os
+import sys
 from multiprocessing import Pool, cpu_count
 from time import sleep
 import numpy as np
@@ -131,6 +134,7 @@ ASC_EV_IGNORE_COLUMNS = {
     'BUTTON':[],}
 ASC_IRREG_EVENTS = ['MSG','START','END']
 ASC_INT_TYPES = [np.int64]
+PUP_FIELDS = ['pup_r','pup_l','RIGHT_PUPIL_SIZE','LEFT_PUPIL_SIZE']
 
 def load_eyelink_dataset(file_name):
     """ Parses eyelink data to return samples and events.
@@ -351,3 +355,80 @@ def ensure_dir(dir_path, overwrite=False):
             rmtree(dir_path)
     if not exists(dir_path):
         makedirs(dir_path)
+
+def get_0_percentage(asc_path):
+    from cili.util import pandas_dfs_from_asc
+    import pandas as pd
+    # grab the data
+    ds, _ = pandas_dfs_from_asc(asc_path)
+    p_fields = [f for f in ds.columns if f in PUP_FIELDS]
+    if len(p_fields) == 0:
+        return 1. # if you can't find a pupil field, we'll call that "bad"
+    return (float(len(ds[ds[p_fields[0]] == 0]))/float(len(ds)))
+
+def list_run_corruption(asc_dir):
+    # for now, just make a histogram of the % of all ascs that are made up of 0's
+    from glob import glob
+    from multiprocessing import Pool
+    from time import sleep
+    import os
+    from pprint import pprint
+    files = glob(os.path.join(asc_dir, '*.asc'))
+    f_count = float(len(files))
+    pool = Pool()
+    result = pool.map_async(get_0_percentage, files)
+    while not result.ready():
+        sleep(.5)
+        perc = "\r(%d chunks remaining)..." % result._number_left
+        sys.stdout.write(perc)
+        sys.stdout.flush()
+    file_checks = result.get()
+    vals = {}
+    for i, fn in enumerate(files):
+        vals[os.path.basename(fn)] = file_checks[i]
+    print "\nDropout by File:"
+    pprint(vals)
+
+help_message = """
+No help at this time. Check the code.
+"""
+
+class Usage(Exception):
+    def __init__(self, msg=help_message):
+        self.msg = msg
+
+def main(argv=None):
+    import os
+    import getopt
+    if argv is None:
+        argv = sys.argv
+    try:
+        try:
+            opts, args = getopt.getopt(argv[1:], "d:", ["dir", "dropout"])
+        except getopt.error, msg:
+            raise Usage(msg="\n"+str(msg))
+        # option processing
+        drop_check = False
+        asc_dir = None
+        for option, value in opts:
+            if option in ("-h", "--help"):
+                raise Usage()
+            if option in ("-d", "--dir"):
+                asc_dir = os.path.abspath(value)
+                if not os.path.exists(asc_dir):
+                    raise Usage("Could not find directory %s" % asc_dir)
+            if option in ("--dropout"):
+                drop_check = True
+        if drop_check and asc_dir:
+            list_run_corruption(asc_dir)
+            return
+    except Usage, err:
+        f_str = sys.argv[0].split("/")[-1] + ":"
+        lfs = len(f_str)
+        f_str = "%s\n%s\n%s\n" % ("-"*lfs, f_str, "-"*lfs)
+        print >> sys.stderr, f_str + str(err.msg)
+        print >> sys.stderr, "-------------------\nfor help use --help\n-------------------"
+        return 2
+
+if __name__ == '__main__':
+    sys.exit(main())

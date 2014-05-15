@@ -214,6 +214,20 @@ samps.to_csv("some_filename.txt", sep="\t")
 
 To create a Zamboni delimited .txt file, just set sep to "Zamboni".
 
+Checking For Signal Dropout
+---------------------------
+
+Sometimes, for one reason or another, eyetracking sessions can go pretty
+poorly. Usually, this means that there's a high level of signal dropout due to
+blinks, or the tracker losing track of the eye. One way to check for this is
+to see what percentage of the timeline's pupil value(s) were recorded as 0.
+Cili's util.py offers a convenient way to check the dropout rate for all of
+the .asc files in a directory, like so:
+
+```python
+util.py --dropout -d /path/to/dir/containing/ascf_iles/
+```
+
 Reporting Bugs, Requesting Features
 ===================================
 
