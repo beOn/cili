@@ -155,16 +155,28 @@ Often, pupillometric sample ranges will be transformed into a % deviation from
 baseline measure, where the baseline is an average of some small range
 immediately preceding the range of interest. Continuing the example above,
 let's extract baseline measures for each of the events, then divide the ranges
-of interest by the baselines:
+of interest by the baselines for the field "pup_r":
 
 ```python
 baselines = extract_event_ranges(samps, events, start_offset=-100, end_offset=-1).mean(level=0)
-ranges = ranges / baselines - 1
+ranges.pup_r = (ranges.pup_r / baselines.pup_r - 1).values
 ```
 
 Not so painful! For more info on range extraction, check out the documentation
 on extract_event_ranges. To work with the returned data effectively, You'll
 probably also want to take a minute to learn about pandas MultiIndex objects.
+
+Borrowing Event Attributes
+--------------------------
+
+If your events each have a field, let's say "subject", and you'd like to
+insert each event's value for that field into every row of the corrisponding
+range under a column of the same name, you can "borrow" event attributes using
+borrow_attributes, like so:
+
+```python
+ranges = extract_event_ranges(samps, events, end_offset=10000, borrow_attributes=["subject"])
+```
 
 Saving and Loading
 ------------------
