@@ -60,7 +60,7 @@ def has_overlapping_events(event, onsets, last_onsets):
     matches = last_onsets[(onsets <= event.name+event.duration) & (last_onsets >= event.name)]
     return len(matches) > 0
 
-def get_eyelink_mask_events(samples, events, find_recovery=True, recovery_field="pup_l"):
+def get_eyelink_mask_events(samples, events, find_recovery=True):
     """ Finds events from EyeLink data that contain untrustworthy data.
 
     Per the EyeLink documentation, we return EBLINK events as well as any
@@ -77,26 +77,23 @@ def get_eyelink_mask_events(samples, events, find_recovery=True, recovery_field=
     find_recovery (bool)
         Defaul True. If true, we will use adjust_eyelink_recov_idxs to find
         the proper ends for blink events.
-    recovery_field (string)
-        The field used in adjust_eyelink_recov_idxs. Should be either left or
-        right pupil size.
     """
     be = events.EBLINK.duration.to_frame()
     be = pd.concat([be, find_nested_events(samples, events.ESACC.duration.to_frame(), be)])
     if find_recovery:
-        adjust_eyelink_recov_idxs(samples, be, field=recovery_field)
+        adjust_eyelink_recov_idxs(samples, be)
     return be
 
-def get_eyelink_mask_idxs(samples, events, find_recovery=True, recovery_field="pup_l"):
+def get_eyelink_mask_idxs(samples, events, find_recovery=True):
     """ Calls get_eyelink_mask_events, finds indices from 'samples' within the returned events.
 
     See notes on get_eyelink_mask_events FMI.
     """
-    be = get_eyelink_mask_events(samples, events, find_recovery=find_recovery, recovery_field=recovery_field)
+    be = get_eyelink_mask_events(samples, events, find_recovery=find_recovery)
     bi = ev_row_idxs(samples, be)
     return bi
 
-def mask_eyelink_blinks(samples, events, mask_fields=["pup_l"], find_recovery=True, recovery_field="pup_l"):
+def mask_eyelink_blinks(samples, events, mask_fields=["pup_l"], find_recovery=True):
     """ Sets the value of all untrustworthy data points to NaN.
 
     Per the EyeLink documentation, we include blink events as well as any
@@ -115,12 +112,9 @@ def mask_eyelink_blinks(samples, events, mask_fields=["pup_l"], find_recovery=Tr
     find_recovery (bool)
         Defaul True. If true, we will use adjust_eyelink_recov_idxs to find
         the proper ends for blink events.
-    recovery_field (string)
-        The field used in adjust_eyelink_recov_idxs. Should be either left or
-        right pupil size.
     """
     samps = samples.copy(deep=True)
-    indices = get_eyelink_mask_idxs(samps, events, find_recovery=find_recovery, recovery_field=recovery_field)
+    indices = get_eyelink_mask_idxs(samps, events, find_recovery=find_recovery)
     samps.loc[indices, mask_fields] = float('nan')
     return samps
 
@@ -157,7 +151,7 @@ def interp_zeros(samples, interp_fields=["pup_l"]):
     samps.fillna(method="ffill", inplace=True)
     return samps
 
-def interp_eyelink_blinks(samples, events, find_recovery=True, interp_fields=["pup_l"], recovery_field="pup_l"):
+def interp_eyelink_blinks(samples, events, find_recovery=True, interp_fields=["pup_l"]):
     """ Replaces the value of all untrustworthy data points linearly interpolated data.
 
     Per the EyeLink documentation, we include blink events as well as any
@@ -176,11 +170,8 @@ def interp_eyelink_blinks(samples, events, find_recovery=True, interp_fields=["p
         the proper ends for blink events.
     interp_fields (list of strings)
         The columns in which we should interpolate data.
-    recovery_field (string)
-        The field used in adjust_eyelink_recov_idxs. Should be either left or
-        right pupil size.
     """
-    samps = mask_eyelink_blinks(samples, events, mask_fields=interp_fields, find_recovery=find_recovery, recovery_field=recovery_field)
+    samps = mask_eyelink_blinks(samples, events, mask_fields=interp_fields, find_recovery=find_recovery)
     # inplace=True causes a crash, so for now...
     # fixed by #6284 ; will be in 0.14 release of pandas
     samps = samps.interpolate(method="linear", axis=0, inplace=False)
@@ -204,7 +195,7 @@ def ev_row_idxs(samples, events):
     idxs = np.intersect1d(idxs, samples.index.tolist())
     return idxs
 
-def adjust_eyelink_recov_idxs(samples, events, z_thresh=.1, field="pup_l", window=1000, kernel_size=100):
+def adjust_eyelink_recov_idxs(samples, events, z_thresh=.1, window=1000, kernel_size=100):
     """ Extends event endpoint until the z-scored derivative of 'field's timecourse drops below thresh
 
     We will try to extend *every* event passed in.
@@ -230,6 +221,12 @@ def adjust_eyelink_recov_idxs(samples, events, z_thresh=.1, field="pup_l", windo
         threshold.
     """
     import numpy as np
+    from util import PUP_FIELDS
+    # find a pupil size field to use
+    p_fields = [f for f in samples.columns if f in PUP_FIELDS]
+    if len(p_fields) == 0:
+        return # if we can't find a pupil field, we won't make any adjustments
+    field = p_fields[0]
     # use pandas to take rolling mean. pandas' kernel looks backwards, so we need to pull a reverse...
     dfs = np.gradient(samples[field].values)
     reversed_dfs = dfs[::-1]

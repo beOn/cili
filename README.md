@@ -89,7 +89,7 @@ So, let's roll up our sleeves and clean some data!
 from cili.util import *
 from cili.cleanup import *
 samps, events = load_eyelink_dataset("/some/file.asc")
-samps = interp_eyelink_blinks(samps, events, interp_fields=["pup_l"], recovery_field="pup_l")
+samps = interp_eyelink_blinks(samps, events, interp_fields=["pup_l"])
 samps = interp_zeros(samps, interp_fields=["pup_l"])
 ```
 
