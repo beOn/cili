@@ -153,7 +153,7 @@ def load_eyelink_dataset(file_name):
     """
     root, ext = os.path.splitext(file_name)
     if ext == '.asc':
-        e, s = pandas_dfs_from_asc(file_name)
+        s, e = pandas_dfs_from_asc(file_name)
     elif ext in ['.txt']:
         s = load_tdf(file_name)
         e = None
@@ -321,7 +321,6 @@ def info_from_asc_samples_line(line_txt):
     elif 'RIGHT' in words and not 'LEFT' in words:
         sample_side = 'r'
     return sample_side, has_velocity, has_resolution
-
 
 def percentile_bucket(vals, bucket_size=10, scale=1.0, shift=0.0):
     """ returns percentile scores for each value
