@@ -16,7 +16,7 @@ def get_readme():
     return d
 
 setup(name='cili',
-      version='0.5.2',
+      version='0.5.3',
       author='Ben Acland',
       author_email='benacland@gmail.com',
       description='Eyetracking data tools based on pandas',
