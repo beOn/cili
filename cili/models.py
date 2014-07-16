@@ -11,10 +11,10 @@ class SaveMixin(object):
     def __init__(self, *args, **kwargs):
         super(SaveMixin, self).__init__(*args, **kwargs)
 
-    def save(self, save_path):
+    def save(self, save_path, **kwargs):
         # explore slower but more flexible "table" later
         initialize_hdf5()
-        self.to_hdf(save_path, "obj", format="fixed")
+        self.to_hdf(save_path, "obj", format="fixed", **kwargs)
 
     @classmethod
     def load_saved(cls, save_path):
