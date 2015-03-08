@@ -208,6 +208,7 @@ def pandas_dfs_from_asc(file_path):
     ev_dtypes = dict([(ev_name, build_asc_ev_dtypes(ev_name, side, has_vel, has_res)) for ev_name in ev_names])
     # get a df for the samples
     samp_df = pandas_df_from_lines(s_lines, samp_dtypes, ASC_SFIELDS_IGNORE)
+    samps = Samples.from_pd_obj(samp_df)
     # handle event types that need to have their lines preprocessed...
     for ev_name in ASC_IRREG_EVENTS:
         if not ev_name in e_lines:
@@ -220,8 +221,11 @@ def pandas_dfs_from_asc(file_path):
                                          ASC_EV_IGNORE_COLUMNS[ev_name]))
                     for ev_name in ev_names if len(e_lines[ev_name]) > 0])
 
+    evs = Events.from_dict(ev_dfs)
+    # adjust events that start before or end after the sample range
+    constrain_events(samps, evs)
     # TODO add omitting ASC_EV_IGNORE_COLUMNS[ev_name]
-    return Samples.from_pd_obj(samp_df), Events.from_dict(ev_dfs)
+    return samps, evs
 
 def pandas_df_from_lines(csv_lines, dtypes, ignore):
     import pandas as pd
@@ -387,6 +391,18 @@ def list_run_corruption(asc_dir):
         vals[os.path.basename(fn)] = file_checks[i]
     print "\nDropout by File:"
     pprint(vals)
+
+def constrain_events(samples, events):
+    """ adjusts start times of any events that overflow sample bounds"""
+    lowtime = samples.index[0]
+    hightime = samples.index[-1]
+    enames = events.dframes.keys()
+    for en in enames:
+        df = events.dframes[en]
+        idxs = np.where(df.index < lowtime)[0]
+        new_idxs = np.array(df.index.tolist())
+        new_idxs[idxs] = lowtime
+        df.index = new_idxs
 
 help_message = """
 No help at this time. Check the code.
