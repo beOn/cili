@@ -57,7 +57,6 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     # find the number of samples per range... right now, we assume they're all equal
     r_len = samples.index.get_loc(r_times.last_onset.iloc[0]) - samples.index.get_loc(r_times.index[0]) + 1
     # we're going to make a df with a hierarchical index.
-    # There's an annoying assumption hidden here!
     samples['orig_idx'] = samples.index
     midx = pd.MultiIndex.from_product([range(len(e_starts)), range(r_len)],
         names=['event', 'onset'])
@@ -78,7 +77,5 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
                 new_df[ba] = events_dataframe.iloc[idx].get(ba, float('nan'))
         df = pd.concat([df, new_df])
         idx += 1
-        # idxs.extend(samples.loc[stime:etime].index.tolist())
-    # news = samples.loc[idxs]
     df.index = midx
     return df
