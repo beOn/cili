@@ -253,5 +253,6 @@ Why Cili?
 
 Because, like the mighty ciliary muscles, it brings your eye data into focus.
 
-TODO: Thanks, credit to CCP Lab
+Thanks, credit to Dr. Todd Braver and the Cognitive Control and Psychopathology
+Lab at Washington University in St Louis, where this code was developed.
 
