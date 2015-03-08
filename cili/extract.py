@@ -65,12 +65,11 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     df = pd.DataFrame()
     idx = 0
     for stime, etime in r_times.itertuples():
-        # lr_len = samples.index.get_loc(etime) - samples.index.get_loc(stime) + 1
-        if round_indices:
-            stime = samples.index.asof(stime)
-            etime = samples.index.asof(etime)
-            stime = getattr(stime,'value',stime)
-            etime = getattr(etime,'value',etime)
+        # get the start time... add the number of indices that you want...
+        s_idx = np.where(samples.index > stime)[0][0]-1
+        e_idx = s_idx + r_len - 1
+        stime = samples.index[s_idx]
+        etime = samples.index[e_idx]
         new_df = samples.loc[stime:etime]
         if borrow_attributes:
             for ba in borrow_attributes:
