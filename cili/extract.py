@@ -6,6 +6,8 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
                          end_offset=0, round_indices=True, borrow_attributes=[]):
     """ Extracts ranges from samples based on event timing.
 
+    See note at bottom - this method works, but should be replaced.
+
     Parameters
     ----------
     samples (Samples object)
@@ -15,17 +17,16 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
         'duration'. Note that if you have an Events object evs, and it has,
         say, a set of events named "EBLINK", then you can pass Events.EBLINK
         for this argument.
-    start_offset (numer - same type as your samples index)
-        Added to each event onset to find the range start indices. Note, the
-        start index is *included* in the returned samples.
-    end_offset (numer - same type as your samples index)
-        Added to each event onset to find the range end indices. Note, the end
-        index is *included* from the subsample. See documentation on pandas
-        dataset .loc method for more info. So if your data is 1KHz, your
-        start_offset is 0, and you want 1000 ms worth of data your end_offset
-        should be 999. Got that? It's the offset between the onset of the
-        event, and the onset of the last sample you want to *include* in the
-        range.
+    start_offset (number - same type as your samples index, probably ms)
+        Each index of the events_dataframe is an event onset time, and we add
+        the start_offset to each of these times to find the beginnings our or
+        target ranges, then search the sample times to find the sample indices
+        of these range onset times. If there isn't an exact match, we pick the
+        last sample time before the range onset time.
+    end_offset (number - same type as your samples index, probably ms)
+        Like start_offset, but for the offsets of target ranges instead of the
+        onsets. Note, the sample containing the range offset time will be
+        *included* in the extracted range.
     round_indices (bool)
         Default is True. If True, we'll use samples.index.asof on each of the
         start/end times to make sure we ask for valid indices. If false, you
@@ -39,6 +40,12 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
         column will be created in the ranges dataframe - if the column does
         not exist in the events dataframe, the values in the each
         corrisponding range will be set to float('nan').
+
+    # TODO: this really should be replaced with a method that just takes a
+    # start offset and a sample count. It's cleaner than calculating the
+    # sample count from the first event, which makes it hard to control the
+    # shape of the data the function returns.
+
     """
     if start_offset == end_offset or start_offset > end_offset:
         raise ValueError("start_offset must be < end_offset")
