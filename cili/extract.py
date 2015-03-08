@@ -27,19 +27,14 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
         Like start_offset, but for the offsets of target ranges instead of the
         onsets. Note, the sample containing the range offset time will be
         *included* in the extracted range.
-    round_indices (bool)
-        Default is True. If True, we'll use samples.index.asof on each of the
-        start/end times to make sure we ask for valid indices. If false, you
-        may have issues using events defined outside of your eyetracking
-        software. Take care to ensure that your onsets/durations align with
-        your samples. The downside of using the default setting is that event
-        sample onsets may no longer align with the events_dataframe onsets.
     borrow_attributes (list of strings)
         A list of column names in the events_dataframe whose values you would
         like to copy to the respective ranges. For each item in the list, a
         column will be created in the ranges dataframe - if the column does
         not exist in the events dataframe, the values in the each
         corrisponding range will be set to float('nan').
+    round_indices (bool)
+        Depricated.
 
     # TODO: this really should be replaced with a method that just takes a
     # start offset and a sample count. It's cleaner than calculating the
@@ -49,13 +44,24 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     """
     if start_offset >= end_offset:
         raise ValueError("start_offset must be < end_offset")
-    # get the list of start and stop times
+    # get the list of start and stop times - note that we no longer pay
+    # attention to the stop times (see below)
     e_starts = events_dataframe.index.to_series()
     r_times = pd.DataFrame(e_starts + end_offset)
     r_times.index += start_offset
     r_times.columns = ['last_onset']
-    # find the number of samples per range... right now, we assume they're all equal
-    r_len = samples.index.get_loc(r_times.last_onset.iloc[0]) - samples.index.get_loc(r_times.index[0]) + 1
+    # sanity check - make sure no events start before the data, or end afterwards
+    if any(r_times.index < samples.index[0]):
+        raise ValueError("at least one event range starts before the first sample")
+    if any(r_times.index < samples.index[0]):
+        raise ValueError("at least one event range ends after the last sample")
+
+    # get the indices for the first event (minus the first index)
+    ev_idxs = np.logical_and(samples.index <= r_times.last_onset.iloc[0],
+                             samples.index > r_times.index[0])
+    # this method just uses the length of the first event as a template for
+    # all future events
+    r_len = len(np.where(ev_idxs)[0]) + 1
     # we're going to make a df with a hierarchical index.
     samples['orig_idx'] = samples.index
     midx = pd.MultiIndex.from_product([range(len(e_starts)), range(r_len)],
