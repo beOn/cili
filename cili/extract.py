@@ -47,7 +47,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     # shape of the data the function returns.
 
     """
-    if start_offset == end_offset or start_offset > end_offset:
+    if start_offset >= end_offset:
         raise ValueError("start_offset must be < end_offset")
     # get the list of start and stop times
     e_starts = events_dataframe.index.to_series()
