@@ -104,9 +104,11 @@ def extract_events(samples, events, offset=0, duration=0,
         for this argument.
     offset (number)
         How to position extraction range start relative to event start.
-        Interpretation depends upon 'units'.        
+        Interpretation depends upon 'units'. Default 0.
     duration (number)
         How long a rane to extract. Interpretation depends upon 'units'.
+        Default 0. Note that if this and offset are both 0, you'll get None in
+        return.
     units (string constant)
         Can be 'time' or 'sample', declared at the top of this file as
         TIME_UNITS and SAMP_UNITS. Default is 'sample'. Determines which index
@@ -120,11 +122,11 @@ def extract_events(samples, events, offset=0, duration=0,
         offset from each event's start time by 'offset' *samples*, and
         'duration' samples long.
     borrow_attributes (list of strings)
-        A list of column names in the events_dataframe whose values you would
-        like to copy to the respective ranges. For each item in the list, a
-        column will be created in the ranges dataframe - if the column does
-        not exist in the events dataframe, the values in the each
-        corrisponding range will be set to float('nan').
+        A list of column names in the 'events' whose values you would like to
+        copy to the respective ranges. For each item in the list, a column
+        will be created in the ranges dataframe - if the column does not exist
+        in the events dataframe, the values in the each corrisponding range
+        will be set to float('nan').
     """
     # TODO: ...
     pass
