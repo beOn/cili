@@ -149,8 +149,12 @@ def extract_events(samples, events, offset=0, duration=0,
             raise ValueError("at least one event range ends after the last sample")
     else:
         # just find the indexes of the event starts, and offset by sample count
-        r_idxs = [np.where(samples.index > et)[0][0]-1+offset for et in e_starts]
+        r_idxs = np.array([np.where(samples.index > et)[0][0]-1+offset for et in e_starts])
         r_dur = duration
+        if any(r_idxs < 0):
+            raise ValueError("at least one event range starts before the first sample")
+        if any(r_idxs >= len(samples)):
+            raise ValueError("at least one event range ends after the last sample")
     # make a hierarchical index
     samples['orig_idx'] = samples.index
     midx = pd.MultiIndex.from_product([range(len(e_starts)), range(r_dur)],
