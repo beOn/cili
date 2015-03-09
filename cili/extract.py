@@ -128,8 +128,46 @@ def extract_events(samples, events, offset=0, duration=0,
         in the events dataframe, the values in the each corrisponding range
         will be set to float('nan').
     """
-    # TODO: ...
-    pass
+    # dummy check
+    if offset == 0 and duration == 0:
+        return None
+    # get the list of start and stop sample indices
+    e_starts = events.index.to_series()
+
+    if units == TIME_UNITS:
+        # get the indices for the first event (minus the first index), then use
+        # the length of the first event as a template for all events
+        r_times = e_starts+offset
+        ev_idxs = np.logical_and(samples.index <= r_times.iloc[0] + duration,
+                                 samples.index > r_times.iloc[0])
+        r_dur = len(np.where(ev_idxs)[0]) + 1
+        r_idxs = [np.where(samples.index > rt)[0][0]-1 for rt in r_times]
+        # sanity check - make sure no events start before the data, or end afterwards
+        if any(r_times < samples.index[0]):
+            raise ValueError("at least one event range starts before the first sample")
+        if any(r_times > samples.index[-1]):
+            raise ValueError("at least one event range ends after the last sample")
+    else:
+        # just find the indexes of the event starts, and offset by sample count
+        r_idxs = [np.where(samples.index > et)[0][0]-1+offset for et in e_starts]
+        r_dur = duration
+    # make a hierarchical index
+    samples['orig_idx'] = samples.index
+    midx = pd.MultiIndex.from_product([range(len(e_starts)), range(r_dur)],
+        names=['event', 'onset'])
+    # get the samples
+    df = pd.DataFrame()
+    idx = 0
+    for s_idx in r_idxs:
+        # get the start time... add the number of indices that you want...
+        e_idx = s_idx + r_dur-1 # pandas.loc indexing is inclusive
+        new_df = samples.loc[samples.index[s_idx] : samples.index[e_idx]]
+        for ba in borrow_attributes:
+            new_df[ba] = events_dataframe.iloc[idx].get(ba, float('nan'))
+        df = pd.concat([df, new_df])
+        idx += 1
+    df.index = midx
+    return df
 
 
 
