@@ -89,7 +89,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     return df
 
 
-def extract_events(samples, events, offset, duration,
+def extract_events(samples, events, offset=0, duration=0,
                    units=SAMP_UNITS, borrow_attributes=[]):    
     """ Extracts ranges from samples based on event timing and sample count.
 
