@@ -2,6 +2,9 @@ from models import *
 import pandas as pd
 import numpy as np
 
+TIME_UNITS = 'time'
+SAMP_UNITS = 'sample'
+
 def extract_event_ranges(samples, events_dataframe, start_offset=0,
                          end_offset=0, round_indices=True, borrow_attributes=[]):
     """ Extracts ranges from samples based on event timing.
@@ -84,3 +87,64 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
         idx += 1
     df.index = midx
     return df
+
+
+def extract_events(samples, events, offset, duration,
+                   units=SAMP_UNITS, borrow_attributes=[]):    
+    """ Extracts ranges from samples based on event timing and sample count.
+
+    Parameters
+    ==========
+    samples (Samples object)
+        The Samples object from which you'd like to extract ranges.
+    events (DataFrame object containing event timing info)
+        Indices should be onset times, duration should be in a column named
+        'duration'. Note that if you have an Events object evs, and it has,
+        say, a set of events named "EBLINK", then you can pass Events.EBLINK
+        for this argument.
+    offset (number)
+        How to position extraction range start relative to event start.
+        Interpretation depends upon 'units'.        
+    duration (number)
+        How long a rane to extract. Interpretation depends upon 'units'.
+    units (string constant)
+        Can be 'time' or 'sample', declared at the top of this file as
+        TIME_UNITS and SAMP_UNITS. Default is 'sample'. Determines which index
+        will be used to interpret the offset and duration parameters. If units
+        is 'time', then we will extract ranges offset from each event's start
+        time by 'offset' ms, and 'duration' ms long (or as close as we can get
+        given your sampling frequency). Actually, we use the sample count of
+        the first event as a template for all events, so this method can be a
+        little slippery. For finer control over the size of the returned
+        dataset, you can set 'units' to 'sample'. Then, we will extract ranges
+        offset from each event's start time by 'offset' *samples*, and
+        'duration' samples long.
+    borrow_attributes (list of strings)
+        A list of column names in the events_dataframe whose values you would
+        like to copy to the respective ranges. For each item in the list, a
+        column will be created in the ranges dataframe - if the column does
+        not exist in the events dataframe, the values in the each
+        corrisponding range will be set to float('nan').
+    """
+    # TODO: ...
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
