@@ -56,7 +56,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     # sanity check - make sure no events start before the data, or end afterwards
     if any(r_times.index < samples.index[0]):
         raise ValueError("at least one event range starts before the first sample")
-    if any(r_times.index < samples.index[0]):
+    if any(r_times.index > samples.index[-1]):
         raise ValueError("at least one event range ends after the last sample")
 
     # get the indices for the first event (minus the first index)
