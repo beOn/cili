@@ -10,3 +10,7 @@
 
 /cili.egg-info/
 .idea*
+
+cili.sublime-project
+
+cili.sublime-workspace
