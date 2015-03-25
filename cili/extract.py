@@ -90,7 +90,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
 
 
 def extract_events(samples, events, offset=0, duration=0,
-                   units=SAMP_UNITS, borrow_attributes=[]):    
+                   units='samples', borrow_attributes=[]):
     """ Extracts ranges from samples based on event timing and sample count.
 
     Parameters
@@ -106,21 +106,21 @@ def extract_events(samples, events, offset=0, duration=0,
         How to position extraction range start relative to event start.
         Interpretation depends upon 'units'. Default 0.
     duration (number)
-        How long a rane to extract. Interpretation depends upon 'units'.
+        How long a range to extract. Interpretation depends upon 'units'.
         Default 0. Note that if this and offset are both 0, you'll get None in
         return.
     units (string constant)
-        Can be 'time' or 'sample', declared at the top of this file as
-        TIME_UNITS and SAMP_UNITS. Default is 'sample'. Determines which index
+        Can be 'time' or 'samples'. Default is 'samples'. Determines which index
         will be used to interpret the offset and duration parameters. If units
         is 'time', then we will extract ranges offset from each event's start
         time by 'offset' ms, and 'duration' ms long (or as close as we can get
         given your sampling frequency). Actually, we use the sample count of
         the first event as a template for all events, so this method can be a
         little slippery. For finer control over the size of the returned
-        dataset, you can set 'units' to 'sample'. Then, we will extract ranges
+        dataset, you can set 'units' to 'samples'. Then, we will extract ranges
         offset from each event's start time by 'offset' *samples*, and
-        'duration' samples long.
+        'duration' samples long. It's then up to you to calculate how long the
+        sample is in time, based on your sampling rate.
     borrow_attributes (list of strings)
         A list of column names in the 'events' whose values you would like to
         copy to the respective ranges. For each item in the list, a column
@@ -134,7 +134,7 @@ def extract_events(samples, events, offset=0, duration=0,
     # get the list of start and stop sample indices
     e_starts = events.index.to_series()
 
-    if units == TIME_UNITS:
+    if units == 'time':
         # get the indices for the first event (minus the first index), then use
         # the length of the first event as a template for all events
         r_times = e_starts+offset
@@ -147,7 +147,7 @@ def extract_events(samples, events, offset=0, duration=0,
             raise ValueError("at least one event range starts before the first sample")
         if any(r_times > samples.index[-1]):
             raise ValueError("at least one event range ends after the last sample")
-    else:
+    elif units == 'samples':
         # just find the indexes of the event starts, and offset by sample count
         r_idxs = np.array([np.where(samples.index > et)[0][0]-1+offset for et in e_starts])
         r_dur = duration
@@ -155,6 +155,9 @@ def extract_events(samples, events, offset=0, duration=0,
             raise ValueError("at least one event range starts before the first sample")
         if any(r_idxs >= len(samples)):
             raise ValueError("at least one event range ends after the last sample")
+    else:
+        raise ValueError("Not a valid unit!")
+
     # make a hierarchical index
     samples['orig_idx'] = samples.index
     midx = pd.MultiIndex.from_product([range(len(e_starts)), range(r_dur)],
