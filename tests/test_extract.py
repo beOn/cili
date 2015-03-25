@@ -10,14 +10,15 @@ import os
 # Unit tests for the extract module. Paths to data files assume tests
 # are run from the /cili/ directory.
 
+DATA_DIR = os.path.join(os.getcwd(), 'tests', 'data')
 
 def test_extract_events_1():
     """Test event extraction for dataset 2, "duration" of
     5 samples"""
-    fname = os.path.join(os.getcwd(), 'tests', 'binoc_250Hz_2.asc')
+    fname = os.path.join(DATA_DIR, 'binoc_250Hz_2.asc')
     samps, events = load_eyelink_dataset(fname)
     extracted = extract_events(samps, events.EFIX, duration=5)
 
-    fname = os.path.join(os.getcwd(), 'tests', 'binoc_250Hz_2_extracted.csv')
+    fname = os.path.join(DATA_DIR, 'binoc_250Hz_2_extracted.csv')
     true = pd.read_csv(fname, index_col=[0, 1])
     assert_frame_equal(extracted, true)
