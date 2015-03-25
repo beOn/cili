@@ -239,7 +239,7 @@ def pandas_df_from_lines(csv_lines, dtypes, ignore):
                      low_memory=False,
                      na_values=["."],
                      names=fields,
-                     header=0,
+                     header=None,
                      error_bad_lines=False,
                      # usecols=use_names,
                      warn_bad_lines=False,)
