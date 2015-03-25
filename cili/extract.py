@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 TIME_UNITS = 'time'
-SAMP_UNITS = 'sample'
+SAMP_UNITS = 'samples'
 
 def extract_event_ranges(samples, events_dataframe, start_offset=0,
                          end_offset=0, round_indices=True, borrow_attributes=[]):
@@ -134,7 +134,7 @@ def extract_events(samples, events, offset=0, duration=0,
     # get the list of start and stop sample indices
     e_starts = events.index.to_series()
 
-    if units == 'time':
+    if units == TIME_UNITS:
         # get the indices for the first event (minus the first index), then use
         # the length of the first event as a template for all events
         r_times = e_starts+offset
@@ -147,7 +147,7 @@ def extract_events(samples, events, offset=0, duration=0,
             raise ValueError("at least one event range starts before the first sample")
         if any(r_times > samples.index[-1]):
             raise ValueError("at least one event range ends after the last sample")
-    elif units == 'samples':
+    elif units == SAMP_UNITS:
         # just find the indexes of the event starts, and offset by sample count
         r_idxs = np.array([np.where(samples.index > et)[0][0]-1+offset for et in e_starts])
         r_dur = duration
