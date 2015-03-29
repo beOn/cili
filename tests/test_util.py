@@ -2,7 +2,8 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
-from nose.tools import assert_equal, assert_true, assert_raises, raises
+from nose.tools import assert_equal, assert_true, assert_raises, raises,\
+    with_setup
 
 from cili.util import load_eyelink_dataset, pandas_dfs_from_asc
 import os
@@ -150,4 +151,41 @@ def test_mono2000_idx():
     diffs = np.unique(diffs[diffs<100])
     assert_equal(diffs,4)
 
+def test_event_types():
+    # make sure the full list of events is there
+    ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
+    test_evs = ['END', 'EFIX', 'EBLINK', 'START', 'ESACC', 'MSG']
+    assert_array_equal(es.dframes.keys(), test_evs)
 
+def test_end_fields():
+    ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
+    test_fields = ['name', 'types', 'x_res', 'y_res']
+    assert_array_equal(es.END.columns.values, test_fields)
+
+def test_efix_fields():
+    ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
+    test_fields = ['name', 'eye', 'last_onset', 'duration',
+                   'x_pos', 'y_pos', 'p_size']
+    assert_array_equal(es.EFIX.columns.values, test_fields)
+
+def test_eblink_fields():
+    ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
+    test_fields = ['name', 'eye', 'last_onset', 'duration']
+    assert_array_equal(es.EBLINK.columns.values, test_fields)
+
+def test_start_fields():
+    ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
+    test_fields = ['name', 'eye', 'types']
+    assert_array_equal(es.START.columns.values, test_fields)
+
+def test_esacc_fields():
+    ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
+    test_fields = ['name', 'eye', 'last_onset', 'duration',
+                   'x_start', 'y_start', 'x_end', 'y_end',
+                   'vis_angle', 'peak_velocity']
+    assert_array_equal(es.ESACC.columns.values, test_fields)
+
+def test_msg_fields():
+    ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
+    test_fields = ['name', 'label', 'content']
+    assert_array_equal(es.MSG.columns.values, test_fields)
