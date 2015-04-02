@@ -1,24 +1,17 @@
+import os
 import numpy as np
 from numpy.testing import assert_array_equal
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
-from nose.tools import assert_equal, assert_true, assert_raises, raises,\
-    with_setup
+from nose.tools import assert_equal, assert_true, assert_raises, raises
 
+from config import *
 from cili.util import load_eyelink_dataset, pandas_dfs_from_asc
-import os
 
 # Unit tests for the util module. Paths to data files assume tests
 # are run from the /cili/ directory.
 #
 # To run tests, type `nosetests -v` with `nose` installed.
-
-# test data paths
-DATA_DIR = os.path.join(os.getcwd(), 'tests', 'data')
-paths = ['bino250', 'bino500', 'bino1000', 'binoRemote250',
-         'binoRemote500', 'mono250', 'mono500', 'mono1000',
-         'mono2000', 'monoRemote250', 'monoRemote500']
-paths = dict([(p, os.path.join(DATA_DIR,p+'.asc')) for p in paths])
 
 """ load_eyelink_dataset """
 
