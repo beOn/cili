@@ -8,8 +8,6 @@ import numpy as np
 
 from models import *
 
-# TODO: get the junk columns out of the pandas parsed datasets
-
 ASC_SFIELDS_EYE = {
     'l':[('onset', np.int64),
          ('x_l', np.float64),
@@ -38,8 +36,14 @@ ASC_SFIELDS_VEL = {
 ASC_SFIELDS_REZ = [
     ('res_x', np.float64),
     ('res_y', np.float64)]
-ASC_SFIELDS_EXTRA = [('junk', object)]
-ASC_SFIELDS_IGNORE = ['junk',]
+ASC_SFIELDS_REMOTE = [
+    ('targ_x', np.float64),
+    ('targ_y', np.float64),
+    ('targ_dist', np.float64),
+    ('remote_warns', object)]
+ASC_SFIELDS_INPUT = [('input', object)]
+ASC_SFIELDS_SWARNS = [('samp_warns', object)]
+ASC_SFIELDS_IGNORE = []
 TXT_FIELDS = {
     'LEFT_ACCELLERATION_X': np.float64,
     'LEFT_ACCELLERATION_Y': np.float64,
@@ -202,8 +206,8 @@ def pandas_dfs_from_asc(file_path):
     # determine column names, dtypes
     if not len(e_lines["SAMPLES"]) > 0:
         raise ValueError("Could not find samples line in .asc file.")
-    side, has_vel, has_res = info_from_asc_samples_line(e_lines["SAMPLES"][0])
-    samp_dtypes = build_asc_samp_dtypes(side, has_vel, has_res)
+    side, has_vel, has_res, has_htarg, has_input = info_from_asc_samples_line(e_lines["SAMPLES"][0])
+    samp_dtypes = build_asc_samp_dtypes(side, has_vel, has_res, has_htarg, has_input)
     ev_names = [k for k in ASC_EV_LINE_STARTS if not k in ["SAMPLES"]]
     ev_dtypes = dict([(ev_name, build_asc_ev_dtypes(ev_name, side, has_vel, has_res)) for ev_name in ev_names])
     # get a df for the samples
@@ -283,13 +287,18 @@ def prep_irreg_asc_event_lines(lines, ev_name):
         new_lines = lines
     return new_lines
 
-def build_asc_samp_dtypes(side, has_vel, has_res):
+def build_asc_samp_dtypes(side, has_vel, has_res, has_htarg, has_input):
+    dtypes = []
     dtypes = list(ASC_SFIELDS_EYE[side])
     if has_vel:
         dtypes.extend(ASC_SFIELDS_VEL[side])
     if has_res:
         dtypes.extend(ASC_SFIELDS_REZ)
-    dtypes.extend(ASC_SFIELDS_EXTRA)
+    if has_input:
+        dtypes.extend(ASC_SFIELDS_INPUT)
+    dtypes.extend(ASC_SFIELDS_SWARNS)
+    if has_htarg:
+        dtypes.extend(ASC_SFIELDS_REMOTE)
     return dtypes
 
 def build_asc_ev_dtypes(ev_name, side, has_vel, has_res):
@@ -313,18 +322,24 @@ def info_from_asc_samples_line(line_txt):
     has_velocity (bool)
         True if velocity information is included in samples
     has_resolution (bool)
-        True is resolution information is included in samples
+        True if resolution information is included in samples
+    has_htarg (bool)
+        True if head target position information is included in samples
+    has_input (bool)
+        True if head target position information is included in samples
     """
     words = line_txt.split()
     # this line contains information on what the sample lines contain
     has_velocity = "VEL" in words
     has_resolution = "RES" in words
+    has_htarg = 'HTARGET' in words
+    has_input = 'INPUT' in words
     sample_side = 'b'
     if 'LEFT' in words and not 'RIGHT' in words:
         sample_side = 'l'
     elif 'RIGHT' in words and not 'LEFT' in words:
         sample_side = 'r'
-    return sample_side, has_velocity, has_resolution
+    return sample_side, has_velocity, has_resolution, has_htarg, has_input
 
 def percentile_bucket(vals, bucket_size=10, scale=1.0, shift=0.0):
     """ returns percentile scores for each value
