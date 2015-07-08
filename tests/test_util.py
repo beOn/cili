@@ -65,57 +65,61 @@ def test_load_asc_monoRemote500():
 
 def test_bino250_cols():
     ds, es = pandas_dfs_from_asc(paths['bino250'])
-    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r', 'samp_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_bino500_cols():
     ds, es = pandas_dfs_from_asc(paths['bino500'])
-    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r', 'samp_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_bino1000_cols():
     ds, es = pandas_dfs_from_asc(paths['bino1000'])
-    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r', 'samp_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_binoRemote250_cols():
     ds, es = pandas_dfs_from_asc(paths['binoRemote250'])
-    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r',
+        'samp_warns', 'targ_x', 'targ_y', 'targ_dist', 'remote_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_binoRemote500_cols():
     ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
-    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'x_r', 'y_r', 'pup_r',
+        'samp_warns', 'targ_x', 'targ_y', 'targ_dist', 'remote_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_mono250_cols():
     ds, es = pandas_dfs_from_asc(paths['mono250'])
-    test_cols = ['x_l', 'y_l', 'pup_l']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'samp_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_mono500_cols():
     ds, es = pandas_dfs_from_asc(paths['mono500'])
-    test_cols = ['x_l', 'y_l', 'pup_l']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'samp_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_mono1000_cols():
     ds, es = pandas_dfs_from_asc(paths['mono1000'])
-    test_cols = ['x_r', 'y_r', 'pup_r']
+    test_cols = ['x_r', 'y_r', 'pup_r', 'samp_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_mono2000_cols():
     ds, es = pandas_dfs_from_asc(paths['mono2000'])
-    test_cols = ['x_r', 'y_r', 'pup_r']
+    test_cols = ['x_r', 'y_r', 'pup_r', 'samp_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_monoRemote250_cols():
     ds, es = pandas_dfs_from_asc(paths['monoRemote250'])
-    test_cols = ['x_r', 'y_r', 'pup_r']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'samp_warns',
+        'targ_x', 'targ_y', 'targ_dist', 'remote_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 def test_monoRemote500_cols():
     ds, es = pandas_dfs_from_asc(paths['monoRemote500'])
-    test_cols = ['x_r', 'y_r', 'pup_r']
+    test_cols = ['x_l', 'y_l', 'pup_l', 'samp_warns',
+        'targ_x', 'targ_y', 'targ_dist', 'remote_warns']
     assert_array_equal(test_cols, ds.columns.tolist())
 
 # test that for each frequency, the sample rate is what you expect
@@ -143,6 +147,8 @@ def test_mono2000_idx():
     diffs = np.diff(ds.index)
     diffs = np.unique(diffs[diffs<100])
     assert_equal(diffs,4)
+
+# check extracted event types and fields against the expected values
 
 def test_event_types():
     # make sure the full list of events is there
