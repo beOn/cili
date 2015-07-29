@@ -126,6 +126,9 @@ def extract_events(samples, events, offset=0, duration=0,
     # dummy check
     if offset == 0 and duration == 0:
         return None
+    # negative duration should raise an exception
+    if duration <= 0:
+        raise ValueError("Duration must be >0")
     # get the list of start and stop sample indices
     e_starts = events.index.to_series()
 
