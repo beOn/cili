@@ -1,6 +1,7 @@
 from models import *
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 
 TIME_UNITS = 'time'
 SAMP_UNITS = 'samples'
@@ -166,30 +167,11 @@ def extract_events(samples, events, offset=0, duration=0,
     for s_idx in r_idxs:
         # get the start time... add the number of indices that you want...
         e_idx = s_idx + r_dur-1 # pandas.loc indexing is inclusive
-        new_df = samples.loc[samples.index[s_idx] : samples.index[e_idx]]
+        # this deepcopy is heavy handed... but gets around some early pandas bugs
+        new_df = deepcopy(samples.loc[samples.index[s_idx] : samples.index[e_idx]])
         for ba in borrow_attributes:
-            new_df[ba] = events_dataframe.iloc[idx].get(ba, float('nan'))
+            new_df[ba] = events.iloc[idx].get(ba, float('nan'))
         df = pd.concat([df, new_df])
         idx += 1
     df.index = midx
     return df
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
