@@ -170,7 +170,7 @@ Borrowing Event Attributes
 --------------------------
 
 If your events each have a field, let's say "subject", and you'd like to
-insert each event's value for that field into every row of the corrisponding
+insert each event's value for that field into every row of the corresponding
 range under a column of the same name, you can "borrow" event attributes using
 borrow_attributes, like so:
 
