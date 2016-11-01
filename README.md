@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/19322912.svg)](https://zenodo.org/badge/latestdoi/19322912)
+
 cili
 ====
 
@@ -247,6 +249,15 @@ A good bug report should include three things:
 
 The goal is to give the developers the ability to recreate the bug before
 their own eyes. If you can give us that, we'll take a very close look.
+
+Citation
+========
+If you use cili in your work, please reference:
+
+```
+Acland BT, Braver TS (2014). Cili (v0.5.4) [Software] Available from http://doi.org/10.5281/zenodo.48843
+```
+
 
 Why Cili?
 =========
