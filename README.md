@@ -254,9 +254,7 @@ Citation
 ========
 If you use cili in your work, please reference:
 
-```
 Acland BT, Braver TS (2014). Cili (v0.5.4) [Software] Available from http://doi.org/10.5281/zenodo.48843. doi:10.5281/zenodo.48843
-```
 
 
 Why Cili?
