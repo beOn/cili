@@ -10,7 +10,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
                          end_offset=0, round_indices=True, borrow_attributes=[]):
     """ Extracts ranges from samples based on event timing.
 
-    See note at bottom - this method works, but has been replaced.
+    This method works, but has been replaced by extract_events (below).
 
     Parameters
     ----------
@@ -38,10 +38,10 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
         not exist in the events dataframe, the values in the each
         corrisponding range will be set to float('nan').
     round_indices (bool)
-        Depricated.
+        Deprecated.
     """
     from warnings import warn
-    warn("extract_event_ranges will be removed in a future release!")
+    warn("extract_event_ranges is deprecated, use extract_events instead.")
     if start_offset >= end_offset:
         raise ValueError("start_offset must be < end_offset")
     # get the list of start and stop times - note that we no longer pay
