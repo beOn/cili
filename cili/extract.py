@@ -19,7 +19,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     events_dataframe (DataFrame object containing event timing info)
         Indices should be onset times, duration should be in a column named
         'duration'. Note that if you have an Events object evs, and it has,
-        say, a set of events named "EBLINK", then you can pass Events.EBLINK
+        say, a set of events named "EBLINK", then you can pass evs.EBLINK
         for this argument.
     start_offset (number - same type as your samples index, probably ms)
         Each index of the events_dataframe is an event onset time, and we add
@@ -96,7 +96,7 @@ def extract_events(samples, events, offset=0, duration=0,
     events (DataFrame object containing event timing info)
         Indices should be onset times, duration should be in a column named
         'duration'. Note that if you have an Events object evs, and it has,
-        say, a set of events named "EBLINK", then you can pass Events.EBLINK
+        say, a set of events named "EBLINK", then you can pass evs.EBLINK
         for this argument.
     offset (number)
         How to position extraction range start relative to event start.
