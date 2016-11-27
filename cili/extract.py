@@ -23,7 +23,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
         for this argument.
     start_offset (number - same type as your samples index, probably ms)
         Each index of the events_dataframe is an event onset time, and we add
-        the start_offset to each of these times to find the beginnings our or
+        the start_offset to each of these times to find the beginnings of our
         target ranges, then search the sample times to find the sample indices
         of these range onset times. If there isn't an exact match, we pick the
         last sample time before the range onset time.
