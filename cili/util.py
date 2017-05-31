@@ -6,7 +6,7 @@ from multiprocessing import Pool, cpu_count
 from time import sleep
 import numpy as np
 
-from models import *
+from .models import *
 
 ASC_SFIELDS_EYE = {
     'l':[('onset', np.int64),
@@ -174,10 +174,10 @@ def pandas_df_from_txt(file_path):
     # accordingly. It would be nice if the dtypes would work in read_csv, but
     # so far no luck...
     df = pd.read_csv(file_path, sep="\t", index_col="TIMESTAMP", low_memory=False, na_values=["."],)
-    fields = [str(x) for x in df.dtypes.keys()]
-    dtypes = dict([(d, object) for d in fields if not d in TXT_FIELDS.keys()])
-    dtypes.update(dict([(k, v) for k, v in TXT_FIELDS.iteritems() if k in fields]))
-    nums = [k for k, v in dtypes.iteritems() if v not in [object]]
+    fields = [str(x) for x in list(df.dtypes.keys())]
+    dtypes = dict([(d, object) for d in fields if not d in list(TXT_FIELDS.keys())])
+    dtypes.update(dict([(k, v) for k, v in TXT_FIELDS.items() if k in fields]))
+    nums = [k for k, v in dtypes.items() if v not in [object]]
     ints = [k for k in nums if dtypes[k] in TXT_INT_TYPES]
     df[nums] = df[nums].convert_objects(convert_numeric=True)
     df[ints] = df[ints].astype(np.int64)
@@ -233,9 +233,9 @@ def pandas_dfs_from_asc(file_path):
 
 def pandas_df_from_lines(csv_lines, dtypes, ignore):
     import pandas as pd
-    import cStringIO
-    c = cStringIO.StringIO("".join(csv_lines))
-    fields, dts = zip(*dtypes)
+    import io
+    c = io.StringIO("".join(csv_lines))
+    fields, dts = list(zip(*dtypes))
     # use_names = [n for n in fields if not n in ignore]
     df = pd.read_csv(c,
                      delim_whitespace=True,
@@ -404,14 +404,14 @@ def list_run_corruption(asc_dir):
     vals = {}
     for i, fn in enumerate(files):
         vals[os.path.basename(fn)] = file_checks[i]
-    print "\nDropout by File:"
+    print("\nDropout by File:")
     pprint(vals)
 
 def constrain_events(samples, events):
     """ adjusts start times of any events that overflow sample bounds"""
     lowtime = samples.index[0]
     hightime = samples.index[-1]
-    enames = events.dframes.keys()
+    enames = list(events.dframes.keys())
     for en in enames:
         df = events.dframes[en]
         idxs = np.where(df.index < lowtime)[0]
@@ -435,7 +435,7 @@ def main(argv=None):
     try:
         try:
             opts, args = getopt.getopt(argv[1:], "d:", ["dir", "dropout"])
-        except getopt.error, msg:
+        except getopt.error as msg:
             raise Usage(msg="\n"+str(msg))
         # option processing
         drop_check = False
@@ -452,12 +452,12 @@ def main(argv=None):
         if drop_check and asc_dir:
             list_run_corruption(asc_dir)
             return
-    except Usage, err:
+    except Usage as err:
         f_str = sys.argv[0].split("/")[-1] + ":"
         lfs = len(f_str)
         f_str = "%s\n%s\n%s\n" % ("-"*lfs, f_str, "-"*lfs)
-        print >> sys.stderr, f_str + str(err.msg)
-        print >> sys.stderr, "-------------------\nfor help use --help\n-------------------"
+        print(f_str + str(err.msg), file=sys.stderr)
+        print("-------------------\nfor help use --help\n-------------------", file=sys.stderr)
         return 2
 
 if __name__ == '__main__':

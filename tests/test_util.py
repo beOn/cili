@@ -5,7 +5,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal
 from nose.tools import assert_equal, assert_true, assert_raises, raises
 
-from config import *
+from .config import *
 from cili.util import load_eyelink_dataset, pandas_dfs_from_asc
 
 # Unit tests for the util module. Paths to data files assume tests
@@ -154,7 +154,7 @@ def test_event_types():
     # make sure the full list of events is there
     ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
     test_evs = ['END', 'EFIX', 'EBLINK', 'START', 'ESACC', 'MSG']
-    assert_array_equal(es.dframes.keys(), test_evs)
+    assert_array_equal(list(es.dframes.keys()), test_evs)
 
 def test_end_fields():
     ds, es = pandas_dfs_from_asc(paths['binoRemote500'])

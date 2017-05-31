@@ -54,7 +54,7 @@ class Events(object):
 
     def save(self, save_path):
         s = pt.HDFStore(save_path)
-        for k in self.dframes.keys():
+        for k in list(self.dframes.keys()):
             s[k] = self.dframes[k]
         s.close()
 
@@ -62,7 +62,7 @@ class Events(object):
     def load_saved(cls, save_path):
         obj = cls()
         s = pt.HDFStore(save_path)
-        obj.dframes = dict([(k[1:],s[k]) for k in s.keys()])
+        obj.dframes = dict([(k[1:],s[k]) for k in list(s.keys())])
         s.close()
         return obj
 
@@ -93,7 +93,7 @@ class Events(object):
             corresponding DataFrame.
         """
         import os
-        from cPickle import load as pload
+        from pickle import load as pload
         if isinstance(events_list, str):
             if not os.path.isfile(events_list):
                 raise ValueError("Could not find file %s" % events_list)
@@ -108,13 +108,13 @@ class Events(object):
                 evd[ev["name"]] = [ev]
             else:
                 evd[ev["name"]].append(ev)
-        for k in evd.keys():
+        for k in list(evd.keys()):
             evd[k] = pd.DataFrame(evd[k])
         return cls.from_dict(evd)
 
     def _local_dir(self):
         """ add the string-like attributes from the info_axis """
-        return [c for c in self.dframes.keys()
+        return [c for c in list(self.dframes.keys())
             if isinstance(c, string_types) and isidentifier(c)]
 
     def __dir__(self):

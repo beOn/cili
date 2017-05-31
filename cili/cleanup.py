@@ -1,4 +1,4 @@
-from models import *
+from .models import *
 import pandas as pd
 
 #-------------------------------------------------------------
@@ -189,8 +189,8 @@ def ev_row_idxs(samples, events):
     """
     import numpy as np
     idxs = []
-    for idx, dur in events.duration.iteritems():
-        idxs.extend(range(idx, int(idx+dur)))
+    for idx, dur in events.duration.items():
+        idxs.extend(list(range(idx, int(idx+dur))))
     idxs = np.unique(idxs)
     idxs = np.intersect1d(idxs, samples.index.tolist())
     return idxs
@@ -221,7 +221,7 @@ def adjust_eyelink_recov_idxs(samples, events, z_thresh=.1, window=1000, kernel_
         threshold.
     """
     import numpy as np
-    from util import PUP_FIELDS
+    from .util import PUP_FIELDS
     # find a pupil size field to use
     p_fields = [f for f in samples.columns if f in PUP_FIELDS]
     if len(p_fields) == 0:
@@ -236,11 +236,11 @@ def adjust_eyelink_recov_idxs(samples, events, z_thresh=.1, window=1000, kernel_
     samp_count = len(samples)
     # search for drop beneath z_thresh after end index
     new_durs = []
-    for idx, dur in events.duration.iteritems():
+    for idx, dur in events.duration.items():
         try:
             s_pos = samples.index.get_loc(idx + dur)  - 1
             e_pos = samples.index[min(s_pos+window, samp_count-1)]
-        except Exception, e:
+        except Exception as e:
             # can't do much about that
             s_pos = e_pos = 0
         if s_pos == e_pos:

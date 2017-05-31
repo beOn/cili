@@ -4,7 +4,7 @@ import pandas as pd
 from nose.tools import assert_equal, assert_true, assert_raises, raises
 from numpy.testing import assert_array_equal
 
-from config import *
+from .config import *
 from cili.extract import *
 from cili.util import load_eyelink_dataset, pandas_dfs_from_asc
 

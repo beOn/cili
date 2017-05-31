@@ -1,4 +1,4 @@
-from models import *
+from .models import *
 import pandas as pd
 import numpy as np
 from copy import deepcopy
@@ -64,7 +64,7 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
     r_len = len(np.where(ev_idxs)[0]) + 1
     # we're going to make a df with a hierarchical index.
     samples['orig_idx'] = samples.index
-    midx = pd.MultiIndex.from_product([range(len(e_starts)), range(r_len)],
+    midx = pd.MultiIndex.from_product([list(range(len(e_starts))), list(range(r_len))],
         names=['event', 'onset'])
     # get all of the samples!
     # idxs = []
@@ -159,7 +159,7 @@ def extract_events(samples, events, offset=0, duration=0,
 
     # make a hierarchical index
     samples['orig_idx'] = samples.index
-    midx = pd.MultiIndex.from_product([range(len(e_starts)), range(r_dur)],
+    midx = pd.MultiIndex.from_product([list(range(len(e_starts))), list(range(r_dur))],
         names=['event', 'onset'])
     # get the samples
     df = pd.DataFrame()
