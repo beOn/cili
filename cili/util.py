@@ -184,7 +184,7 @@ def pandas_df_from_txt(file_path):
     dtypes.update(dict([(k, v) for k, v in TXT_FIELDS.items() if k in fields]))
     nums = [k for k, v in dtypes.items() if v not in [object]]
     ints = [k for k in nums if dtypes[k] in TXT_INT_TYPES]
-    df[nums] = df[nums].convert_objects(convert_numeric=True)
+    df[nums] = df[nums].apply(pd.to_numeric, errors='coerce')
     df[ints] = df[ints].astype(np.int64)
     # rename TIMESTAMP to "onset" for consistency, and make all columns lower
     fields = [f.lower() for f in fields]
@@ -267,7 +267,7 @@ def pandas_df_from_lines(csv_lines, dtypes, ignore):
         object] and d[0] not in ['onset']]
     ints = [d[0]
             for d in dtypes if d[1] in ASC_INT_TYPES and d[0] not in ['onset']]
-    df[nums] = df[nums].convert_objects(convert_numeric=True)
+    df[nums] = df[nums].apply(pd.to_numeric, errors='coerce')
     df[ints] = df[ints].astype(np.int64)
     for ig in ignore:
         del df[ig]
