@@ -29,6 +29,6 @@ install:
   # Replace dep1 dep2 ... with your dependencies
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nose numpy pandas
   - source activate test-environment
-  - python python setup.py install --hdf5=/opt/local
+  - python setup.py install --hdf5=/opt/local
 
 script: nosetests
