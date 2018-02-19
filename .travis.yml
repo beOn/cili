@@ -1,3 +1,4 @@
+sudo: required
 language: python
 python:
   - '3.6'
@@ -9,6 +10,7 @@ python:
 # https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
 install:
   - sudo apt-get update
+  - sudo apt-get install libhdf5-serial-dev
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
@@ -25,8 +27,8 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nose configparser numpy pandas
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nose numpy pandas
   - source activate test-environment
-  - python setup.py install
+  - python python setup.py install --hdf5=/opt/local
 
 script: nosetests
