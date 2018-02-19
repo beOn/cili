@@ -1,4 +1,4 @@
-from models import *
+from .models import *
 import pandas as pd
 
 #-------------------------------------------------------------
@@ -6,12 +6,12 @@ import pandas as pd
 
 def find_nested_events(samples, outer, inner):
     """ Returns indices of events in outer that contain events in inner
-    
+
     This is helpful for dealing with EyeLink blink events. Each is embedded
     within a saccade event, and the EyeLink documentation states that data
     within saccades that contain blinks is unreliable. So we use this method
     to find those saccade events.
-    
+
     Parameters
     ----------
     samples (cili Samples)

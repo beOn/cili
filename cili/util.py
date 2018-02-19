@@ -6,7 +6,7 @@ from multiprocessing import Pool, cpu_count
 from time import sleep
 import numpy as np
 
-from models import *
+from .models import *
 
 ASC_SFIELDS_EYE = {
     'l':[('onset', np.int64),
@@ -233,8 +233,13 @@ def pandas_dfs_from_asc(file_path):
 
 def pandas_df_from_lines(csv_lines, dtypes, ignore):
     import pandas as pd
-    import cStringIO
-    c = cStringIO.StringIO("".join(csv_lines))
+    try:
+        # python 2
+        from cStringIO import StringIO
+    except ImportError:
+        # python 3+
+        from io import StringIO
+    c = StringIO("".join(csv_lines))
     fields, dts = zip(*dtypes)
     # use_names = [n for n in fields if not n in ignore]
     df = pd.read_csv(c,
