@@ -1,5 +1,7 @@
 [![DOI](https://zenodo.org/badge/19322912.svg)](https://zenodo.org/badge/latestdoi/19322912)
 
+[![Build Status](https://travis-ci.org/beOn/cili.svg?branch=master)](https://travis-ci.org/beOn/cili)
+
 cili
 ====
 
