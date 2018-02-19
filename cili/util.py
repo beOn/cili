@@ -366,7 +366,7 @@ def percentile_bucket(vals, bucket_size=10, scale=1.0, shift=0.0):
     cuts = [sp(vals, p) for p in percs] # to get the cutoff score for each percentile
     new_list = np.array([bisect_left(cuts, val)+1 for val in vals]) * scale + shift # turn values into bucket numbers... +1 since we want 1-indexed buckets
     return new_list
- 
+
 def ensure_dir(dir_path, overwrite=False):
     from shutil import rmtree
     from os.path import isdir, exists
@@ -409,7 +409,7 @@ def list_run_corruption(asc_dir):
     vals = {}
     for i, fn in enumerate(files):
         vals[os.path.basename(fn)] = file_checks[i]
-    print "\nDropout by File:"
+    print("\nDropout by File:")
     pprint(vals)
 
 def constrain_events(samples, events):
@@ -440,7 +440,7 @@ def main(argv=None):
     try:
         try:
             opts, args = getopt.getopt(argv[1:], "d:", ["dir", "dropout"])
-        except getopt.error, msg:
+        except getopt.error as msg:
             raise Usage(msg="\n"+str(msg))
         # option processing
         drop_check = False
@@ -457,7 +457,7 @@ def main(argv=None):
         if drop_check and asc_dir:
             list_run_corruption(asc_dir)
             return
-    except Usage, err:
+    except Usage as err:
         f_str = sys.argv[0].split("/")[-1] + ":"
         lfs = len(f_str)
         f_str = "%s\n%s\n%s\n" % ("-"*lfs, f_str, "-"*lfs)
