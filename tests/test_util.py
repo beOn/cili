@@ -5,7 +5,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal
 from nose.tools import assert_equal, assert_true, assert_raises, raises
 
-from config import *
+from tests.config import *
 from cili.util import load_eyelink_dataset, pandas_dfs_from_asc
 
 # Unit tests for the util module. Paths to data files assume tests
