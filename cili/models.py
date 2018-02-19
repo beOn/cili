@@ -2,12 +2,14 @@ import pandas as pd
 import pandas.io.pytables as pt
 from pandas.compat import u_safe as u, string_types, isidentifier
 
+
 class SaveMixin(object):
     """ Bakes in some save settings for NDFrame subclasses
-    
+
     You can still use the pandas methods, but for quick saving and loading
     this mixin provides some setting you might want to reuse.
     """
+
     def __init__(self, *args, **kwargs):
         super(SaveMixin, self).__init__(*args, **kwargs)
 
@@ -28,14 +30,17 @@ class SaveMixin(object):
     def from_pd_obj(cls, pd_obj):
         return cls(pd_obj._data.copy()).__finalize__(pd_obj)
 
+
 class Samples(SaveMixin, pd.DataFrame):
     """Pandas DataFrame subclas for representing eye tracking timeseries data.
 
     Indexes may be hierarchical.
     """
+
     def __init__(self, *args, **kwargs):
         super(Samples, self).__init__(*args, **kwargs)
-        
+
+
 class Events(object):
     """Pandas Panel-like object that gives you access to DataFrames via standard accessors.
 
@@ -48,13 +53,14 @@ class Events(object):
 
     Right now, the best way way to make one of these is to use Events.from_dict().
     """
+
     def __init__(self, *args, **kwargs):
         super(Events, self).__init__(*args, **kwargs)
         self.dframes = {}
 
     def save(self, save_path):
         s = pt.HDFStore(save_path)
-        for k in self.dframes.keys():
+        for k in list(self.dframes.keys()):
             s[k] = self.dframes[k]
         s.close()
 
@@ -62,14 +68,14 @@ class Events(object):
     def load_saved(cls, save_path):
         obj = cls()
         s = pt.HDFStore(save_path)
-        obj.dframes = dict([(k[1:],s[k]) for k in s.keys()])
+        obj.dframes = dict([(k[1:], s[k]) for k in list(s.keys())])
         s.close()
         return obj
 
     @classmethod
     def from_dict(cls, the_d):
         """ Returns an Events instance containing the given DataFrames
-        
+
         Parameters
         ----------
         the_d (dict)
@@ -93,7 +99,7 @@ class Events(object):
             corresponding DataFrame.
         """
         import os
-        from cPickle import load as pload
+        from pickle import load as pload
         if isinstance(events_list, str):
             if not os.path.isfile(events_list):
                 raise ValueError("Could not find file %s" % events_list)
@@ -108,14 +114,14 @@ class Events(object):
                 evd[ev["name"]] = [ev]
             else:
                 evd[ev["name"]].append(ev)
-        for k in evd.keys():
+        for k in list(evd.keys()):
             evd[k] = pd.DataFrame(evd[k])
         return cls.from_dict(evd)
 
     def _local_dir(self):
         """ add the string-like attributes from the info_axis """
-        return [c for c in self.dframes.keys()
-            if isinstance(c, string_types) and isidentifier(c)]
+        return [c for c in list(self.dframes.keys())
+                if isinstance(c, string_types) and isidentifier(c)]
 
     def __dir__(self):
         """
@@ -137,6 +143,7 @@ class Events(object):
         raise AttributeError("'%s' object has no attribute '%s'" %
                              (type(self).__name__, name))
 
+
 def initialize_hdf5():
-    pt._TYPE_MAP.update({Events:u('wide'), Samples:u('frame'),})
-    pt._AXES_MAP.update({Events:[1, 2], Samples:[0],})
+    pt._TYPE_MAP.update({Events: u('wide'), Samples: u('frame'), })
+    pt._AXES_MAP.update({Events: [1, 2], Samples: [0], })
