@@ -20,7 +20,7 @@ DATA_DIR = os.path.join(os.getcwd(), 'tests', 'data')
 
 def test_timeunit_extract_samplecount_250():
     ds, es = pandas_dfs_from_asc(paths['mono250'])
-    fixations = es.EFIX[:-1]
+    fixations = es.EFIX[:-2]
     sc_time_test(ds, fixations, 250, 500)
     sc_time_test(ds, fixations, 250, 1000)
 
