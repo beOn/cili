@@ -2,6 +2,7 @@ from .models import *
 import pandas as pd
 import numpy as np
 from copy import deepcopy
+from scipy.stats import mode
 
 TIME_UNITS = 'time'
 SAMP_UNITS = 'samples'
@@ -89,8 +90,11 @@ def extract_event_ranges(samples, events_dataframe, start_offset=0,
 
 
 def extract_events(samples, events, offset=0, duration=0,
-                   units='samples', borrow_attributes=[]):
+                   units='samples', borrow_attributes=[], return_count=False):
     """ Extracts ranges from samples based on event timing and sample count.
+
+    Note that we will exclude any ranges which would cross discontinuities in
+    the dataset. If there are no events to return, we will return None
 
     Parameters
     ==========
@@ -126,15 +130,23 @@ def extract_events(samples, events, offset=0, duration=0,
         will be created in the ranges dataframe - if the column does not exist
         in the events dataframe, the values in the each corrisponding range
         will be set to float('nan').
+    return_count (bool)
+        If true, will return the number of events extracted
     """
     # dummy check
     if offset == 0 and duration == 0:
+        if return_count:
+            return None, 0
         return None
     # negative duration should raise an exception
     if duration <= 0:
         raise ValueError("Duration must be >0")
-    # get the list of start and stop sample indices
+    # get the list of start time indices
     e_starts = events.index.to_series()
+    # find the indices of discontinuities
+    idiff = np.diff(samples.index)
+    diffmode = mode(idiff[np.where(idiff > 0)])[0][0]
+    disc_idxs = np.where(idiff > diffmode)[0] + 1
 
     if units == TIME_UNITS:
         # we want all of the extracted chunks to be the same length. but we're
@@ -142,21 +154,58 @@ def extract_events(samples, events, offset=0, duration=0,
         # in all cases. so, we're going to get the sample index bounds for the
         # first event, then re-use the length of the first event (# samples) for
         # all other events.
-        
+
         # first, find the first samples of all of the events (taking the offset
         # into account). searchsorted returns the insertion point needed to
         # maintain sort order, so the first time index of an event is the
         # leftmost insertion point for each event's start time.
         r_times = e_starts + offset
         r_idxs = np.searchsorted(samples.index, r_times.iloc[:], 'left')
+
+        if any(r_times < samples.index[0]):
+            raise ValueError(
+                "at least one event range starts before the first sample")
+
+        # exclude events that cross discontinuities
+        e_idxs = np.searchsorted(samples.index, r_times.iloc[:] + duration, 'left')
+        ok_idxs = [i for i in range(len(r_idxs)) if not
+            any([all((r_idxs[i]<=d, e_idxs[i]>=d)) for d in disc_idxs])]
+        if (len(r_idxs) - len(ok_idxs)) == 0:
+            print("excluding %d events for crossing discontinuities" %  (len(r_idxs) - len(ok_idxs)))
+        # return None if there's nothing to do
+        if len(ok_idxs) == 0:
+            if return_count:
+                return None, 0
+            return None
+        # trim the events data
+        events = events.iloc[ok_idxs]
+        e_starts = e_starts.iloc[ok_idxs]
+        r_idxs = r_idxs[ok_idxs]
+        e_idxs = e_idxs[ok_idxs]
         
-        # find the duration of the first event. the last time index is the
-        # leftmost insertion point of the event start time + duration
-        r_dur = np.searchsorted(samples.index, r_times.iloc[0]+duration, 'left') - r_idxs[0]
+        # find the duration of the first event.
+        r_dur = e_idxs[0] - r_idxs[0]
     elif units == SAMP_UNITS:
         # just find the indexes of the event starts, and offset by sample count
         r_idxs = np.searchsorted(samples.index, e_starts.iloc[:], 'left') + offset
         r_dur = duration
+
+        # exclude events that cross discontinuities
+        e_idxs = r_idxs + duration
+        ok_idxs = [i for i in range(len(r_idxs)) if not
+            any([all((r_idxs[i]<=d, e_idxs[i]>=d)) for d in disc_idxs])]
+        if (len(r_idxs) - len(ok_idxs)) == 0:
+            print("excluding %d events for crossing discontinuities" %  (len(r_idxs) - len(ok_idxs)))
+        # return None if there's nothing to do
+        if len(ok_idxs) == 0:
+            if return_count:
+                return None, 0
+            return None
+        # trim the events data
+        events = events.iloc[ok_idxs]
+        e_starts = e_starts.iloc[ok_idxs]
+        r_idxs = r_idxs[ok_idxs]
+        e_idxs = e_idxs[ok_idxs]
     else:
         raise ValueError("'%s' is not a valid unit!" % units)
 
@@ -164,7 +213,7 @@ def extract_events(samples, events, offset=0, duration=0,
     if any(r_idxs < 0):
         raise ValueError(
             "at least one event range starts before the first sample")
-    if any(r_idxs + r_dur >= len(samples)):
+    if any(e_idxs >= len(samples)):
         raise ValueError(
             "at least one event range ends after the last sample")
 
@@ -186,4 +235,6 @@ def extract_events(samples, events, offset=0, duration=0,
         df = pd.concat([df, new_df])
         idx += 1
     df.index = midx
+    if return_count:
+        return df, len(r_idxs)
     return df

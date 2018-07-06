@@ -17,31 +17,28 @@ DATA_DIR = os.path.join(os.getcwd(), 'tests', 'data')
 
 """ shape of extracted data """
 
-
 def test_timeunit_extract_samplecount_250():
     ds, es = pandas_dfs_from_asc(paths['mono250'])
     fixations = es.EFIX[:-2]
-    sc_time_test(ds, fixations, 250, 500)
-    sc_time_test(ds, fixations, 250, 1000)
-
+    sc_time_test(ds, fixations, 250, 400)
 
 def test_timeunit_extract_samplecount_500():
     ds, es = pandas_dfs_from_asc(paths['mono500'])
-    fixations = es.EFIX[:-1]
-    sc_time_test(ds, fixations, 500, 500)
-    sc_time_test(ds, fixations, 500, 1000)
+    fixations = es.EFIX[:-2]
+    sc_time_test(ds, fixations, 500, 20)
+    sc_time_test(ds, fixations, 500, 100)
 
 
 def test_timeunit_extract_samplecount_1000():
     ds, es = pandas_dfs_from_asc(paths['mono1000'])
-    fixations = es.EFIX[:-1]
-    sc_time_test(ds, fixations, 1000, 500)
-    sc_time_test(ds, fixations, 1000, 1000)
+    fixations = es.EFIX[:-2]
+    sc_time_test(ds, fixations, 1000, 20)
+    sc_time_test(ds, fixations, 1000, 100)
 
 
 def test_timeunit_extract_samplecount_2000():
     ds, es = pandas_dfs_from_asc(paths['mono2000'])
-    fixations = es.EFIX[:-1]
+    fixations = es.EFIX[:-2]
     sc_time_test(ds, fixations, 2000, 500)
     sc_time_test(ds, fixations, 2000, 1000)
 
