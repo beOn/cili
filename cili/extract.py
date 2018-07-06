@@ -137,33 +137,36 @@ def extract_events(samples, events, offset=0, duration=0,
     e_starts = events.index.to_series()
 
     if units == TIME_UNITS:
-        # get the indices for the first event (minus the first index), then use
-        # the length of the first event as a template for all events
+        # we want all of the extracted chunks to be the same length. but we're
+        # dealing with time, so who knows if time and samples are well aligned
+        # in all cases. so, we're going to get the sample index bounds for the
+        # first event, then re-use the length of the first event (# samples) for
+        # all other events.
+        
+        # first, find the first samples of all of the events (taking the offset
+        # into account). searchsorted returns the insertion point needed to
+        # maintain sort order, so the first time index of an event is the
+        # leftmost insertion point for each event's start time.
         r_times = e_starts + offset
-        ev_idxs = np.logical_and(samples.index <= r_times.iloc[0] + duration,
-                                 samples.index > r_times.iloc[0])
-        r_dur = len(np.where(ev_idxs)[0]) + 1
-        r_idxs = [np.where(samples.index > rt)[0][0] - 1 for rt in r_times]
-        # sanity check - make sure no events start before the data, or end afterwards
-        if any(r_times < samples.index[0]):
-            raise ValueError(
-                "at least one event range starts before the first sample")
-        if any(r_times > samples.index[-1]):
-            raise ValueError(
-                "at least one event range ends after the last sample")
+        r_idxs = np.searchsorted(samples.index, r_times.iloc[:], 'left')
+        
+        # find the duration of the first event. the last time index is the
+        # leftmost insertion point of the event start time + duration
+        r_dur = np.searchsorted(samples.index, r_times.iloc[0]+duration, 'left') - r_idxs[0]
     elif units == SAMP_UNITS:
         # just find the indexes of the event starts, and offset by sample count
-        r_idxs = np.array([np.where(samples.index > et)[0]
-                           [0] - 1 + offset for et in e_starts])
+        r_idxs = np.searchsorted(samples.index, e_starts.iloc[:], 'left') + offset
         r_dur = duration
-        if any(r_idxs < 0):
-            raise ValueError(
-                "at least one event range starts before the first sample")
-        if any(r_idxs >= len(samples)):
-            raise ValueError(
-                "at least one event range ends after the last sample")
     else:
-        raise ValueError("Not a valid unit!")
+        raise ValueError("'%s' is not a valid unit!" % units)
+
+    # sanity check - make sure no events start before the data, or end afterwards
+    if any(r_idxs < 0):
+        raise ValueError(
+            "at least one event range starts before the first sample")
+    if any(r_idxs + r_dur >= len(samples)):
+        raise ValueError(
+            "at least one event range ends after the last sample")
 
     # make a hierarchical index
     samples['orig_idx'] = samples.index
