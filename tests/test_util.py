@@ -21,9 +21,9 @@ def test_load_asc_convenience():
     load_eyelink_dataset(paths['bino250'])
 
 
-def test_load_txt_convenience():
-    # TODO: make sure you can load a text file
-    raise NotImplementedError()
+# def test_load_txt_convenience():
+#     # TODO: make sure you can load a text file
+#     raise NotImplementedError()
 
 
 """ pandas_df_from_txt """
