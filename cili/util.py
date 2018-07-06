@@ -3,11 +3,9 @@ from __future__ import print_function
 
 import os
 import sys
-from multiprocessing import Pool, cpu_count
-from time import sleep
 import numpy as np
 
-from .models import *
+from .models import Samples, Events
 
 ASC_SFIELDS_EYE = {
     'l': [('onset', np.int64),
@@ -390,6 +388,7 @@ def percentile_bucket(vals, bucket_size=10, scale=1.0, shift=0.0):
     new_list = np.array(
         [bisect_left(cuts, val) + 1 for val in vals]) * scale + shift
     return new_list
+
 
 def ensure_dir(dir_path, overwrite=False):
     from shutil import rmtree
