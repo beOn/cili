@@ -74,14 +74,14 @@ def test_sampleunit_extract_samplecount_2000():
 """ exceptions """
 
 
-@raises(IndexError)
+@raises(ValueError)
 def test_timeunit_extract_underbounds():
     ds, es = pandas_dfs_from_asc(paths['mono1000'])
-    ext = extract_events(ds, es.EFIX, offset=-10000,
+    ext = extract_events(ds, es.EFIX, offset=-5000,
                          duration=3000, units=TIME_UNITS)
 
 
-@raises(IndexError)
+@raises(ValueError)
 def test_timeunit_extract_overbounds():
     ds, es = pandas_dfs_from_asc(paths['mono1000'])
     ext = extract_events(ds, es.EFIX, duration=3000, units=TIME_UNITS)
