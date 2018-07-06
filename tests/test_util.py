@@ -175,8 +175,8 @@ def test_mono1000_idx():
 def test_mono2000_idx():
     ds, es = pandas_dfs_from_asc(paths['mono2000'])
     diffs = np.diff(ds.index)
-    diffs = np.unique(diffs[diffs < 100])
-    assert_equal(diffs, 4)
+    diffs = sorted(np.unique(diffs[diffs < 100]))
+    assert_equal(diffs, [0,1])
 
 # check extracted event types and fields against the expected values
 
