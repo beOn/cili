@@ -5,6 +5,7 @@ from nose.tools import assert_equal, assert_true, assert_raises, raises
 from numpy.testing import assert_array_equal
 
 from tests.config import *
+from tests.helpers import *
 from cili.extract import *
 from cili.util import load_eyelink_dataset, pandas_dfs_from_asc
 
@@ -71,19 +72,6 @@ def test_sampleunit_extract_samplecount_2000():
     fixations = es.EFIX[:-1]
     sc_samp_test(ds, fixations, 350)
     sc_samp_test(ds, fixations, 700)
-
-
-def sc_samp_test(ds, events, duration, offset=0):
-    ext = extract_events(ds, events, duration=duration, units=SAMP_UNITS)
-    ev_count = np.shape(events)[0]
-    assert_equal(ev_count * duration, np.shape(ext)[0])
-
-
-def sc_time_test(ds, events, sampfreq, duration, offset=0):
-    ext = extract_events(ds, events, duration=duration, units=TIME_UNITS)
-    ev_count = np.shape(events)[0]
-    assert_equal(int(sampfreq * (duration / 1000.)
-                     * ev_count), np.shape(ext)[0])
 
 
 """ exceptions """
