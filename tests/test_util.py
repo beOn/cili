@@ -184,8 +184,8 @@ def test_mono2000_idx():
 def test_event_types():
     # make sure the full list of events is there
     ds, es = pandas_dfs_from_asc(paths['binoRemote500'])
-    test_evs = ['END', 'EFIX', 'EBLINK', 'START', 'ESACC', 'MSG']
-    assert_array_equal(list(es.dframes.keys()), test_evs)
+    test_evs = sorted(['END', 'EFIX', 'EBLINK', 'START', 'ESACC', 'MSG'])
+    assert_array_equal(sorted(list(es.dframes.keys())), test_evs)
 
 
 def test_end_fields():
